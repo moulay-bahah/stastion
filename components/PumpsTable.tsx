@@ -1,0 +1,55 @@
+import { Fuel } from "lucide-react";
+
+const pumpsData = [
+  { id: "Pump 1", status: "Active", fuel: "Diesel", sales: "$1,240", statusColor: "text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-500/20" },
+  { id: "Pump 2", status: "In Use", fuel: "Unleaded 95", sales: "$890", statusColor: "text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-500/20" },
+  { id: "Pump 3", status: "Offline", fuel: "Unleaded 98", sales: "$0", statusColor: "text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-500/20" },
+  { id: "Pump 4", status: "Active", fuel: "Diesel", sales: "$1,105", statusColor: "text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-500/20" },
+];
+
+export default function PumpsTable() {
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="p-5 lg:p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+         <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Pumps Status</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">Live monitoring of all fuelling points.</p>
+         </div>
+         <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">View All</button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[600px]">
+          <thead>
+            <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+              <th className="py-3 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Pump</th>
+              <th className="py-3 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Status</th>
+              <th className="py-3 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Current Fuel</th>
+              <th className="py-3 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Today's Sales</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+            {pumpsData.map((pump, idx) => (
+              <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors group">
+                <td className="py-4 px-6">
+                  <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-3">
+                     <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
+                        <Fuel className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                     </div>
+                     {pump.id}
+                  </div>
+                </td>
+                <td className="py-4 px-6">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${pump.statusColor}`}>
+                    {pump.status}
+                  </span>
+                </td>
+                <td className="py-4 px-6 text-sm font-medium text-slate-600 dark:text-slate-300">{pump.fuel}</td>
+                <td className="py-4 px-6 text-sm font-bold text-slate-900 dark:text-white">{pump.sales}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
