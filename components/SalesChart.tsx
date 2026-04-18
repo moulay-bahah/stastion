@@ -9,23 +9,29 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
+import { pumpReadings, price } from "@/data/data";
 
-const salesData = [
-  { time: "06:00", sales: 400 },
-  { time: "09:00", sales: 800 },
-  { time: "12:00", sales: 1200 },
-  { time: "15:00", sales: 1600 },
-  { time: "18:00", sales: 2100 },
-  { time: "21:00", sales: 1400 },
-  { time: "00:00", sales: 500 },
-];
+
+export type SalesData = {
+  time: string;
+  sales: number;
+};
+const salesData = pumpReadings.map((reading) => {
+  return {
+    time: reading.date,
+    sales: reading.pumps.reduce((acc, pump) => {
+      const fuelTypeKey = pump.fuelType.toLowerCase() as keyof typeof price;
+      return acc + (pump.totalLitersToday * (price[fuelTypeKey] || 0));
+    }, 0),
+  };
+});
 
 export default function SalesChart() {
   return (
     <div className="bg-white dark:bg-slate-900 p-5 lg:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
        <div className="mb-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Sales Trend</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Hourly sales volume across all fuel types.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">daily sales volume across all fuel types.</p>
        </div>
        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
