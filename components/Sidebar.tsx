@@ -66,8 +66,8 @@ export default function Sidebar() {
           <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-lg font-medium transition-colors">
             <LayoutDashboard className="w-5 h-5" /> Dashboard
           </Link>
-          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
-            <Fuel className="w-5 h-5" /> Pump Status
+          <Link href="/daily-sales" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
+            <Fuel className="w-5 h-5" /> Daily Sales
           </Link>
           <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
             <BarChart3 className="w-5 h-5" /> Reports

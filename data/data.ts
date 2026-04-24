@@ -5,6 +5,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_001",
     date: "2026-04-15",
+    sales: 0,
     pumps : [
       {
         pumpId: "pump_001",
@@ -29,6 +30,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_002",
     date: "2026-04-16",
+    sales: 500 * 1000 + 600 * 1000 + 500 * 1000,
     pumps : [
       {
         pumpId: "pump_001",
@@ -53,6 +55,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_003",
     date: "2026-04-17",
+    sales: 500 * (14500 - 13000) + 600 * (10000 - 9000) + 500 * (14500 - 13000),
     pumps : [
       {
         pumpId: "pump_001",
@@ -77,6 +80,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_004",
     date: "2026-04-18",
+    sales: 500 * (16000 - 14500) + 600 * (11000 - 10000) + 500 * (16300 - 14500),
     pumps : [
       {
         pumpId: "pump_001",
@@ -101,6 +105,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_005",
     date: "2026-04-19",
+    sales: 500 * (17500 - 16000) + 600 * (12500 - 11000) + 500 * (17800 - 16300),
     pumps : [
       {
         pumpId: "pump_001",
@@ -125,6 +130,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_006",
     date: "2026-04-20",
+    sales: 500 * (19000 - 17500) + 600 * (14000 - 12500) + 500 * (19300 - 17800),
     pumps : [
       {
         pumpId: "pump_001",
@@ -149,6 +155,7 @@ export const pumpReadings: PumpReading[] = [
   {
     id: "r_007",
     date: "2026-04-21",
+    sales: 500 * (20000 - 19000) + 600 * (15000 - 14000) + 500 * (20000 - 19300),
     pumps : [
       {
         pumpId: "pump_001",
@@ -168,6 +175,156 @@ export const pumpReadings: PumpReading[] = [
         index: 20000,
         totalLitersToday: 20000 - 19300,
       },
+    ]
+  },
+  {
+    id: "r_008",
+    date: "2026-04-22",
+    sales: 500 * (21000 - 20000) + 600 * (18001 - 15000) + 500 * (25001 - 20000),
+    pumps : [
+            {
+        pumpId: "pump_001",
+        fuelType: "diesel",
+        index: 21000,
+        totalLitersToday: 1000,
+      },
+      {
+        pumpId: "pump_002",
+        fuelType: "gasoline",
+        index: 18001,
+        totalLitersToday: 3001,
+      },
+      {
+        pumpId: "pump_003",
+        fuelType: "diesel",
+        index: 25001,
+        totalLitersToday: 5001,
+      }
+    ]
+  },
+  {
+    id: "r_009",
+    date: "2026-04-23",
+    sales: 500 * (21001 - 21000) + 600 * (18002 - 18001) + 500 * (25002 - 25001),
+    pumps : [
+            {
+        pumpId: "pump_001",
+        fuelType: "diesel",
+        index: 21001,
+        totalLitersToday: 1,
+      },
+      {
+        pumpId: "pump_002",
+        fuelType: "gasoline",
+        index: 18002,
+        totalLitersToday: 1,
+      },
+      {
+        pumpId: "pump_003",
+        fuelType: "diesel",
+        index: 25002,
+        totalLitersToday: 1,
+      }
+    ]
+  },
+  {
+    id: "r_010",
+    date: "2026-04-24",
+    sales: 500 * (21002 - 21001) + 600 * (18002 - 18002) + 500 * (25002 - 25002),
+    pumps : [
+            {
+        pumpId: "pump_001",
+        fuelType: "diesel",
+        index: 21002,
+        totalLitersToday: 1,
+      },
+      {
+        pumpId: "pump_002",
+        fuelType: "gasoline",
+        index: 18002,
+        totalLitersToday: 0,
+      },
+      {
+        pumpId: "pump_003",
+        fuelType: "diesel",
+        index: 25002,
+        totalLitersToday: 0,
+      }
+    ]
+  },
+  {
+    id: "r_011",
+    date: "2026-04-25",
+    sales: 1600,
+    pumps : [
+            {
+        pumpId: "pump_001",
+        fuelType: "diesel",
+        index: 21003,
+        totalLitersToday: 1,
+      },
+      {
+        pumpId: "pump_002",
+        fuelType: "gasoline",
+        index: 18003,
+        totalLitersToday: 1,
+      },
+      {
+        pumpId: "pump_003",
+        fuelType: "diesel",
+        index: 25003,
+        totalLitersToday: 1,
+      }
+    ]
+  },
+  {
+    id: "r_012",
+    date: "2026-04-26",
+    sales: 3100,
+    pumps : [
+            {
+        pumpId: "pump_001",
+        fuelType: "diesel",
+        index: 21008,
+        totalLitersToday: 5,
+      },
+      {
+        pumpId: "pump_002",
+        fuelType: "gasoline",
+        index: 18004,
+        totalLitersToday: 1,
+      },
+      {
+        pumpId: "pump_003",
+        fuelType: "diesel",
+        index: 25003,
+        totalLitersToday: 0,
+      }
+    ]
+  },
+  {
+    id: "r_013",
+    date: "2026-04-27",
+    sales: 10200,
+    pumps : [
+            {
+        pumpId: "pump_001",
+        fuelType: "diesel",
+        index: 21012,
+        totalLitersToday: 4,
+      },
+      {
+        pumpId: "pump_002",
+        fuelType: "gasoline",
+        index: 18016,
+        totalLitersToday: 12,
+      },
+      {
+        pumpId: "pump_003",
+        fuelType: "diesel",
+        index: 25005,
+        totalLitersToday: 2,
+      }
     ]
   },
 ];

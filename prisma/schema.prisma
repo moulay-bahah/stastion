@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Owner {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String?  @unique
+  
+  stations  Station[]
+  employees Employee[]
+}
+
+model Employee {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String  @unique
+  
+  ownerId   String
+  owner     Owner    @relation(fields: [ownerId], references: [id])
+  
+  stations  Station[] @relation("EmployeeStations")
+}
+
+model Station {
+  id        String   @id @default(uuid())
+  name      String
+  location  String
+  isActive  Boolean  @default(true)
+  
+  ownerId   String?
+  owner     Owner?   @relation(fields: [ownerId], references: [id])
+  
+  employees Employee[] @relation("EmployeeStations")
+  
+  pumps     Pump[]
+  tanks     Tank[]
+}
+
+model Pump {
+  id               String   @id @default(uuid())
+  index            Int
+  name             String
+  fuelType         String   // "diesel" | "gasoline"
+  status           String   // "active" | "maintenance"
+  totalLitersToday Float    @default(0)
+  
+  stationId        String
+  station          Station  @relation(fields: [stationId], references: [id])
+  
+  tankId           String
+  tank             Tank     @relation(fields: [tankId], references: [id])
+
+  readings         PumpReadingEntry[]
+}
+
+model Tank {
+  id           String   @id @default(uuid())
+  fuelType     String   // "diesel" | "gasoline"
+  capacity     Float
+  currentLevel Float
+  minThreshold Float
+  lastRefillAt DateTime @default(now())
+  
+  stationId    String
+  station      Station  @relation(fields: [stationId], references: [id])
+  
+  pumps        Pump[]
+  refills      TankRefill[]
+}
+
+model TankRefill {
+  id              String   @id @default(uuid())
+  amount          Float
+  supplier        String
+  date            DateTime
+  paymentEvidence String[]
+  costPerLiter    Float
+  totalliter      Float
+  fuelType        String   // "diesel" | "gasoline"
+  createdAt       DateTime @default(now())
+  
+  tankId          String
+  tank            Tank     @relation(fields: [tankId], references: [id])
+}
+
+model PumpReading {
+  id       String   @id @default(uuid())
+  date     DateTime @default(now())
+  sales    Float
+
+  entries  PumpReadingEntry[]
+}
+
+model PumpReadingEntry {
+  id               String   @id @default(uuid())
+  pumpId           String
+  pump             Pump     @relation(fields: [pumpId], references: [id])
+  
+  readingId        String
+  reading          PumpReading @relation(fields: [readingId], references: [id])
+  
+  fuelType         String
+  index            Int
+  totalLitersToday Float
+}
+
+model Price {
+  id        Int      @id @default(1)
+  diesel    Float
+  gasoline  Float
+}
