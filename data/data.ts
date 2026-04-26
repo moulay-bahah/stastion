@@ -1,4 +1,4 @@
-import { Station, Pump, Tank, TankRefill, PumpReading, Price } from "./type";
+import { Station, Pump, Tank, TankRefill, PumpReading, Price, Owner, Employee } from "./type";
 
 
 export const pumpReadings: PumpReading[] = [
@@ -386,6 +386,7 @@ export const pumps: Pump[] = [
 export const tanks: Tank[] = [
   {
     id: "tank_001",
+    name: "Diesel Main Tank",
     stationId: "st_001",
     fuelType: "diesel",
     capacity: 10000, // باللتر
@@ -395,6 +396,7 @@ export const tanks: Tank[] = [
   },
   {
     id: "tank_002",
+    name: "Gasoline Main Tank",
     stationId: "st_001",
     fuelType: "gasoline",
     capacity: 8000,
@@ -404,6 +406,7 @@ export const tanks: Tank[] = [
   },
   {
     id: "tank_003",
+    name: "Diesel Secondary Tank",
     stationId: "st_002",
     fuelType: "diesel",
     capacity: 12000,
@@ -420,15 +423,54 @@ export const tankRefills: TankRefill[] = [
     tankId: "tank_001",
     amount: 4000,
     supplier: "Total Supplier",
-    cost: 4800,
+    totalliter: 4000,
+    fuelType: "diesel",
+    costPerLiter: 400,
     createdAt: "2026-04-14T18:00:00Z",
+    paymentEvidence: [],
+    date: "2026-04-14",
   },
   {
     id: "refill_002",
     tankId: "tank_002",
     amount: 3000,
     supplier: "Local Supplier",
-    cost: 3900,
+    date: "2026-04-13",
+    totalliter: 3000,
+    fuelType: "gasoline",
+    costPerLiter: 500,
     createdAt: "2026-04-13T12:00:00Z",
+    paymentEvidence: [],
+  },
+];
+
+
+export const owners: Owner[] = [
+  {
+    id: "owner_001",
+    role: "owner",
+    name: "Owner 1",
+    phone: "32347872",
+    stationIds: ["st_001", "st_002"],
+    employeeIds: ["employee_001", "employee_002"],
+  },
+];
+
+export const employees: Employee[] = [
+  {
+    id: "employee_001",
+    role: "employee",
+    name: "Employee 1",
+    phone: "123456789",
+    ownerId: "owner_001",
+    stationIds: ["st_001"],
+  },
+  {
+    id: "employee_002",
+    role: "employee",
+    name: "Employee 2",
+    phone: "123456789",
+    ownerId: "owner_001",
+    stationIds: ["st_001", "st_002"],
   },
 ];

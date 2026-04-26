@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { 
   BarChart3, 
   Fuel, 
@@ -9,12 +10,15 @@ import {
   Users,
   Menu,
   X,
-  Droplet
+  Droplet,
+  Truck,
+  Receipt
 } from "lucide-react";
 import Link from "next/link"; // Recommended for internal navigation
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <>
@@ -63,21 +67,33 @@ export default function Sidebar() {
 
         {/* Sidebar Links */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-lg font-medium transition-colors">
-            <LayoutDashboard className="w-5 h-5" /> Dashboard
-          </Link>
-          <Link href="/daily-sales" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
-            <Fuel className="w-5 h-5" /> Daily Sales
-          </Link>
-          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
-            <BarChart3 className="w-5 h-5" /> Reports
-          </Link>
-          <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
-            <Users className="w-5 h-5" /> Staff
-          </Link>
-          <Link href="/setting" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg font-medium transition-colors">
-            <Settings className="w-5 h-5" /> Settings
-          </Link>
+          {[
+            { href: "/", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/daily-sales", label: "Daily Sales", icon: Fuel },
+            { href: "/purchases", label: "Fuel Purchases", icon: Truck },
+            { href: "/expenses", label: "Expenses", icon: Receipt },
+            { href: "/reports", label: "Reports", icon: BarChart3 },
+            { href: "/staff", label: "Staff", icon: Users },
+            { href: "/setting", label: "Settings", icon: Settings },
+          ].map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
+            
+            return (
+              <Link 
+                key={link.href}
+                href={link.href} 
+                onClick={() => setIsOpen(false)} 
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${
+                  isActive 
+                    ? "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400" 
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                }`}
+              >
+                <Icon className="w-5 h-5" /> {link.label}
+              </Link>
+            );
+          })}
         </div>
       </aside>
     </>

@@ -24,6 +24,7 @@ export type Pump = {
 
 export type Tank = {
   id: string;
+  name: string;
   stationId: string;
   fuelType: "diesel" | "gasoline";
   capacity: number;
@@ -61,8 +62,7 @@ export type Owner = {
   id: string;
   role: "owner";
   name: string;
-  email: string;
-  phone?: string;
+  phone: string;
   stationIds: string[]; // Stations owned by this owner
   employeeIds: string[]; // Employees managed by this owner
 };
@@ -71,10 +71,18 @@ export type Employee = {
   id: string;
   role: "employee";
   name: string;
-  email: string;
-  phone?: string;
+  phone: string;
   ownerId: string; // The owner who manages this employee
   stationIds: string[]; // Stations where this employee works
 };
 
 export type User = Owner | Employee;
+
+export type Expense = {
+  id: string;
+  date: string;
+  category: "Salary" | "Maintenance" | "Electricity" | "Transport" | "Other";
+  amount: number;
+  description?: string;
+  stationId: string;
+};

@@ -8,70 +8,72 @@ datasource db {
 }
 
 model Owner {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String?  @unique
-  
+  id    String @id @default(uuid())
+  name  String
+  phone String @unique
+
   stations  Station[]
   employees Employee[]
 }
 
 model Employee {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String  @unique
-  
-  ownerId   String
-  owner     Owner    @relation(fields: [ownerId], references: [id])
-  
-  stations  Station[] @relation("EmployeeStations")
+  id    String @id @default(uuid())
+  name  String
+  phone String @unique
+
+  ownerId String
+  owner   Owner  @relation(fields: [ownerId], references: [id])
+
+  stations Station[] @relation("EmployeeStations")
 }
 
 model Station {
-  id        String   @id @default(uuid())
-  name      String
-  location  String
-  isActive  Boolean  @default(true)
-  
-  ownerId   String?
-  owner     Owner?   @relation(fields: [ownerId], references: [id])
-  
+  id       String  @id @default(uuid())
+  name     String
+  location String
+  isActive Boolean @default(true)
+
+  ownerId String?
+  owner   Owner?  @relation(fields: [ownerId], references: [id])
+
   employees Employee[] @relation("EmployeeStations")
-  
-  pumps     Pump[]
-  tanks     Tank[]
+
+  pumps    Pump[]
+  tanks    Tank[]
+  expenses Expense[]
 }
 
 model Pump {
-  id               String   @id @default(uuid())
+  id               String @id @default(uuid())
   index            Int
   name             String
-  fuelType         String   // "diesel" | "gasoline"
-  status           String   // "active" | "maintenance"
-  totalLitersToday Float    @default(0)
-  
-  stationId        String
-  station          Station  @relation(fields: [stationId], references: [id])
-  
-  tankId           String
-  tank             Tank     @relation(fields: [tankId], references: [id])
+  fuelType         String // "diesel" | "gasoline"
+  status           String // "active" | "maintenance"
+  totalLitersToday Float  @default(0)
 
-  readings         PumpReadingEntry[]
+  stationId String
+  station   Station @relation(fields: [stationId], references: [id])
+
+  tankId String
+  tank   Tank   @relation(fields: [tankId], references: [id])
+
+  readings PumpReadingEntry[]
 }
 
 model Tank {
   id           String   @id @default(uuid())
-  fuelType     String   // "diesel" | "gasoline"
+  name         String   @default("Tank")
+  fuelType     String // "diesel" | "gasoline"
   capacity     Float
   currentLevel Float
   minThreshold Float
   lastRefillAt DateTime @default(now())
-  
-  stationId    String
-  station      Station  @relation(fields: [stationId], references: [id])
-  
-  pumps        Pump[]
-  refills      TankRefill[]
+
+  stationId String
+  station   Station @relation(fields: [stationId], references: [id])
+
+  pumps   Pump[]
+  refills TankRefill[]
 }
 
 model TankRefill {
@@ -79,39 +81,50 @@ model TankRefill {
   amount          Float
   supplier        String
   date            DateTime
-  paymentEvidence String[]
+  paymentEvidence String[] @default([])
   costPerLiter    Float
   totalliter      Float
-  fuelType        String   // "diesel" | "gasoline"
+  fuelType        String // "diesel" | "gasoline"
   createdAt       DateTime @default(now())
-  
-  tankId          String
-  tank            Tank     @relation(fields: [tankId], references: [id])
+
+  tankId String
+  tank   Tank   @relation(fields: [tankId], references: [id])
 }
 
 model PumpReading {
-  id       String   @id @default(uuid())
-  date     DateTime @default(now())
-  sales    Float
+  id    String   @id @default(uuid())
+  date  DateTime @default(now())
+  sales Float
 
-  entries  PumpReadingEntry[]
+  entries PumpReadingEntry[]
 }
 
 model PumpReadingEntry {
-  id               String   @id @default(uuid())
-  pumpId           String
-  pump             Pump     @relation(fields: [pumpId], references: [id])
-  
-  readingId        String
-  reading          PumpReading @relation(fields: [readingId], references: [id])
-  
+  id     String @id @default(uuid())
+  pumpId String
+  pump   Pump   @relation(fields: [pumpId], references: [id])
+
+  readingId String
+  reading   PumpReading @relation(fields: [readingId], references: [id])
+
   fuelType         String
   index            Int
   totalLitersToday Float
 }
 
 model Price {
-  id        Int      @id @default(1)
-  diesel    Float
-  gasoline  Float
+  id       Int   @id @default(1)
+  diesel   Float
+  gasoline Float
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  date        DateTime @default(now())
+  category    String // "Salary" | "Maintenance" | "Electricity" | "Transport" | "Other"
+  amount      Float
+  description String?
+
+  stationId String
+  station   Station @relation(fields: [stationId], references: [id])
 }

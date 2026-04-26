@@ -122,7 +122,7 @@ export default function SalesChart() {
               <Tooltip 
                 contentStyle={{ backgroundColor: "#1e293b", border: "none", borderRadius: "12px", color: "#fff", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                 itemStyle={{ fontWeight: 500 }}
-                formatter={(value: number, name: string) => [value.toLocaleString(), name]}
+                formatter={(value: any, name: any) => [Number(value).toLocaleString(), name]}
               />
               {activeLines.sales && (
                 <Line type="monotone" dataKey="sales" name="Total Sales" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6, strokeWidth: 0 }} />
