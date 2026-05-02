@@ -17,8 +17,8 @@ export type Pump = {
   stationId: string;
   index: number;
   name: string;
-  fuelType: "diesel" | "gasoline";
-  status: "active" | "maintenance";
+  fuelType: string; //"diesel" | "gasoline";
+  status: string; //"active" | "maintenance";
   totalLitersToday: number;
 };
 
@@ -26,7 +26,7 @@ export type Tank = {
   id: string;
   name: string;
   stationId: string;
-  fuelType: "diesel" | "gasoline";
+  fuelType: string; //"diesel" | "gasoline";
   capacity: number;
   currentLevel: number;
   minThreshold: number;

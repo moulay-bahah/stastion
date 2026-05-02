@@ -8,7 +8,7 @@ import { tanks } from "@/data/data";
 // ];
 
 const tanksData = tanks.map((tank) => ({
-  id: tank.id,
+  name: tank.name,
   fuel: tank.fuelType,
   capacity: tank.capacity,
   currentLevel: tank.currentLevel,
@@ -43,7 +43,7 @@ export default function TanksTable() {
                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
                         <Fuel className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                      </div>
-                     {tank.id}
+                     {tank.name}
                   </div>
                 </td>
                 <td className="py-4 px-6 text-sm font-medium text-slate-600 dark:text-slate-300">{tank.fuel}</td>

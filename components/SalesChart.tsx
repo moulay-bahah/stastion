@@ -17,27 +17,34 @@ export type SalesData = {
   sales: number;
   diesel: number;
   gasoline: number;
+  dieselLiters: number;
+  gasolineLiters: number;
 };
 
 const rawSalesData = pumpReadings.reduce((acc: Record<string, SalesData>, reading) => {
   const date = reading.date;
   const daySales = reading.sales;
   
-  const dieselSales = reading.pumps
+  const dieselLiters = reading.pumps
     .filter((p) => p.fuelType === "diesel")
-    .reduce((sum, p) => sum + p.totalLitersToday * price.diesel, 0);
+    .reduce((sum, p) => sum + p.totalLitersToday, 0);
 
-  const gasolineSales = reading.pumps
+  const gasolineLiters = reading.pumps
     .filter((p) => p.fuelType === "gasoline")
-    .reduce((sum, p) => sum + p.totalLitersToday * price.gasoline, 0);
+    .reduce((sum, p) => sum + p.totalLitersToday, 0);
+
+  const dieselSales = dieselLiters * price.diesel;
+  const gasolineSales = gasolineLiters * price.gasoline;
 
   if (!acc[date]) {
-    acc[date] = { time: date, sales: 0, diesel: 0, gasoline: 0 };
+    acc[date] = { time: date, sales: 0, diesel: 0, gasoline: 0, dieselLiters: 0, gasolineLiters: 0 };
   }
   
   acc[date].sales += daySales;
   acc[date].diesel += dieselSales;
   acc[date].gasoline += gasolineSales;
+  acc[date].dieselLiters += dieselLiters;
+  acc[date].gasolineLiters += gasolineLiters;
   
   return acc;
 }, {} as Record<string, SalesData>);
@@ -122,7 +129,15 @@ export default function SalesChart() {
               <Tooltip 
                 contentStyle={{ backgroundColor: "#1e293b", border: "none", borderRadius: "12px", color: "#fff", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
                 itemStyle={{ fontWeight: 500 }}
-                formatter={(value: any, name: any) => [Number(value).toLocaleString(), name]}
+                formatter={(value: any, name: any, item: any) => {
+                  if (name === "Diesel" && item?.payload?.dieselLiters != null) {
+                    return [`${Number(value).toLocaleString()} (${item.payload.dieselLiters.toLocaleString()} L)`, name];
+                  }
+                  if (name === "Gasoline" && item?.payload?.gasolineLiters != null) {
+                    return [`${Number(value).toLocaleString()} (${item.payload.gasolineLiters.toLocaleString()} L)`, name];
+                  }
+                  return [Number(value).toLocaleString(), name];
+                }}
               />
               {activeLines.sales && (
                 <Line type="monotone" dataKey="sales" name="Total Sales" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6, strokeWidth: 0 }} />

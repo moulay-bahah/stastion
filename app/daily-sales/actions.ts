@@ -1,43 +1,65 @@
 "use server";
 
-import fs from "fs/promises";
-import path from "path";
+import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function submitDailyReading(newReading: any) {
   try {
-    const dataPath = path.join(process.cwd(), "data", "data.ts");
-    const content = await fs.readFile(dataPath, "utf-8");
+    const { date, sales, pumps } = newReading;
 
-    const newReadingStr = `  {
-    id: "${newReading.id}",
-    date: "${newReading.date}",
-    sales: ${newReading.sales},
-    pumps : [
-      ${newReading.pumps.map((p: any) => `      {
-        pumpId: "${p.pumpId}",
-        fuelType: "${p.fuelType}",
-        index: ${p.index},
-        totalLitersToday: ${p.totalLitersToday},
-      }`).join(",\n")}
-    ]
-  }`;
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create the main PumpReading record
+      const reading = await tx.pumpReading.create({
+        data: {
+          date: new Date(date),
+          sales: parseFloat(sales),
+        },
+      });
 
-    const newContent = content.replace(
-      /\];[\s\r\n]*export const price/,
-      `${newReadingStr},\n];\n\nexport const price`
-    );
+      // 2. Process each pump entry
+      for (const p of pumps) {
+        // Create the individual reading entry
+        await tx.pumpReadingEntry.create({
+          data: {
+            readingId: reading.id,
+            pumpId: p.pumpId,
+            fuelType: p.fuelType,
+            index: parseInt(p.index),
+            totalLitersToday: parseFloat(p.totalLitersToday),
+          },
+        });
 
-    if (newContent === content) {
-      throw new Error("Could not find the insertion point for pumpReadings in data.ts");
-    }
+        // Update the Pump's current index and today's total
+        const updatedPump = await tx.pump.update({
+          where: { id: p.pumpId },
+          data: {
+            index: parseInt(p.index),
+            totalLitersToday: parseFloat(p.totalLitersToday),
+          },
+          select: { tankId: true },
+        });
 
-    await fs.writeFile(dataPath, newContent, "utf-8");
-    
-    // Revalidate the dashboard explicitly so the new data appears immediately
+        // Update the associated Tank's current level
+        if (updatedPump.tankId) {
+          await tx.tank.update({
+            where: { id: updatedPump.tankId },
+            data: {
+              currentLevel: {
+                decrement: parseFloat(p.totalLitersToday),
+              },
+            },
+          });
+        }
+      }
+
+      return reading;
+    });
+
+    // Revalidate the dashboard and the daily-sales page
     revalidatePath("/");
+    revalidatePath("/daily-sales");
     
-    return { success: true };
+    return { success: true, data: result };
   } catch (error: any) {
     console.error("Failed to submit daily reading:", error);
     return { success: false, error: error.message };

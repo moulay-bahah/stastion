@@ -1,21 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { pumps, pumpReadings, price } from "@/data/data";
 import { submitDailyReading } from "./actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Fuel, ArrowLeft, Save, Calendar, DollarSign, Plus, X, Activity } from "lucide-react";
-import { PumpReading } from "@/data/type";
+import { Fuel, ArrowLeft, Save, Calendar, DollarSign, Plus, X, Activity, Loader2 } from "lucide-react";
+import { PumpReading, Pump, Price } from "@/data/type";
 
 export default function DailySales() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // List state
   const [filterDate, setFilterDate] = useState("");
-  const [readings, setReadings] = useState<PumpReading[]>(pumpReadings);
+  const [readings, setReadings] = useState<PumpReading[]>([]);
+  const [pumps, setPumps] = useState<Pump[]>([]);
+  const [price, setPrice] = useState<Price>({ diesel: 0, gasoline: 0 });
 
   // Form state
   const [date, setDate] = useState("");
@@ -26,25 +28,65 @@ export default function DailySales() {
   useEffect(() => {
     setMounted(true);
     setDate(new Date().toISOString().split("T")[0]);
-    
-    const defaultIndices: Record<string, number> = {};
-    pumps.forEach(pump => {
-      // Find the last reading for this pump to format the init state
-      const lastReadingIndex = pumpReadings[pumpReadings.length - 1]?.pumps.find(p => p.pumpId === pump.id)?.index || 0;
-      defaultIndices[pump.id] = lastReadingIndex;
-    });
-    setIndices(defaultIndices);
+    fetchData();
   }, []);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/sales?meta=true");
+      const data = await res.json();
+      
+      if (data.readings) {
+        setReadings(data.readings);
+        setPumps(data.pumps || []);
+        setPrice(data.price || { diesel: 0, gasoline: 0 });
+        
+        // Initialize indices for the form
+        const defaultIndices: Record<string, number> = {};
+        data.pumps?.forEach((pump: Pump) => {
+          // Find the last reading for this pump from the readings list
+          // Note: data.readings is sorted desc by date, so first one with this pump is the latest
+          let lastIndex = 0;
+          for (const reading of data.readings) {
+            const pEntry = reading.pumps.find((p: any) => p.pumpId === pump.id);
+            if (pEntry) {
+              lastIndex = pEntry.index;
+              break;
+            }
+          }
+          defaultIndices[pump.id] = lastIndex;
+        });
+        setIndices(defaultIndices);
+      }
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    if (pumps.length === 0) return;
+    
     const totalSales = pumps.reduce((acc, pump) => {
-      const previousIndex = pumpReadings[pumpReadings.length - 1]?.pumps.find(p => p.pumpId === pump.id)?.index || 0;
+      // Find previous index for this pump
+      let previousIndex = 0;
+      for (const reading of readings) {
+        const pEntry = reading.pumps.find((p: any) => p.pumpId === pump.id);
+        if (pEntry) {
+          previousIndex = pEntry.index;
+          break;
+        }
+      }
+      
       const currentIndex = indices[pump.id] || 0;
       const totalLiters = Math.max(0, currentIndex - previousIndex);
-      return acc + totalLiters * price[pump.fuelType];
+      const fuelPrice = pump.fuelType === "diesel" ? price.diesel : price.gasoline;
+      return acc + totalLiters * fuelPrice;
     }, 0);
     setSales(totalSales);
-  }, [indices]);
+  }, [indices, pumps, readings, price]);
 
   if (!mounted) return null;
 
@@ -64,12 +106,18 @@ export default function DailySales() {
     e.preventDefault();
     setSubmitting(true);
 
-    const newReading = {
-      id: `r_${(pumpReadings.length + 1).toString().padStart(3, "0")}`,
+    const newReadingData = {
       date,
       sales,
       pumps: pumps.map(pump => {
-        const previousIndex = pumpReadings[pumpReadings.length - 1]?.pumps.find(p => p.pumpId === pump.id)?.index || 0;
+        let previousIndex = 0;
+        for (const reading of readings) {
+          const pEntry = reading.pumps.find((p: any) => p.pumpId === pump.id);
+          if (pEntry) {
+            previousIndex = pEntry.index;
+            break;
+          }
+        }
         const currentIndex = indices[pump.id] || 0;
         return {
           pumpId: pump.id,
@@ -80,20 +128,14 @@ export default function DailySales() {
       })
     };
 
-    const result = await submitDailyReading(newReading);
+    const result = await submitDailyReading(newReadingData);
     setSubmitting(false);
     
     if (result.success) {
-      setReadings(prev => [...prev, newReading as PumpReading]);
       setIsModalOpen(false);
+      // Refresh data instead of just local state update for consistency
+      fetchData();
       router.refresh();
-      
-      const defaultIndices: Record<string, number> = {};
-      pumps.forEach(pump => {
-        const lastReadingIndex = newReading.pumps.find(p => p.pumpId === pump.id)?.index || 0;
-        defaultIndices[pump.id] = lastReadingIndex;
-      });
-      setIndices(defaultIndices);
     } else {
       alert("Error: " + result.error);
     }
@@ -146,68 +188,75 @@ export default function DailySales() {
 
         {/* Data Table */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
-                  <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Date</th>
-                  <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Total Liters Sold</th>
-                  <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Diesel Sold</th>
-                  <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Gasoline Sold</th>
-                  <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500 text-right">Total Sales</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {filteredReadings.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-500">No daily readings found.</td>
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center text-slate-500">
+              <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
+              <p>Loading sales data...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                    <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Date</th>
+                    <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Total Liters Sold</th>
+                    <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Diesel Sold</th>
+                    <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500">Gasoline Sold</th>
+                    <th className="py-4 px-6 text-xs uppercase tracking-wider font-semibold text-slate-500 text-right">Total Sales</th>
                   </tr>
-                ) : (
-                  filteredReadings.map((reading) => {
-                    const totalLiters = reading.pumps.reduce((acc, p) => acc + p.totalLitersToday, 0);
-                    const dieselLiters = reading.pumps.filter(p => p.fuelType === "diesel").reduce((acc, p) => acc + p.totalLitersToday, 0);
-                    const gasolineLiters = reading.pumps.filter(p => p.fuelType === "gasoline").reduce((acc, p) => acc + p.totalLitersToday, 0);
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {filteredReadings.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-slate-500">No daily readings found.</td>
+                    </tr>
+                  ) : (
+                    filteredReadings.map((reading) => {
+                      const totalLiters = reading.pumps.reduce((acc, p) => acc + p.totalLitersToday, 0);
+                      const dieselLiters = reading.pumps.filter(p => p.fuelType === "diesel").reduce((acc, p) => acc + p.totalLitersToday, 0);
+                      const gasolineLiters = reading.pumps.filter(p => p.fuelType === "gasoline").reduce((acc, p) => acc + p.totalLitersToday, 0);
 
-                    return (
-                      <tr key={reading.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="py-4 px-6 text-sm font-medium text-slate-900 dark:text-white">
-                          {reading.date}
-                        </td>
-                        <td className="py-4 px-6 text-sm font-mono text-slate-600 dark:text-slate-300">
-                          {totalLiters.toLocaleString()} L
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
-                              diesel
+                      return (
+                        <tr key={reading.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="py-4 px-6 text-sm font-medium text-slate-900 dark:text-white">
+                            {reading.date}
+                          </td>
+                          <td className="py-4 px-6 text-sm font-mono text-slate-600 dark:text-slate-300">
+                            {totalLiters.toLocaleString()} L
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                diesel
+                              </span>
+                              <span className="text-sm font-mono text-slate-600 dark:text-slate-300">
+                                {dieselLiters.toLocaleString()} L
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                                gasoline
+                              </span>
+                              <span className="text-sm font-mono text-slate-600 dark:text-slate-300">
+                                {gasolineLiters.toLocaleString()} L
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <span className="font-mono font-bold text-slate-900 dark:text-white">
+                              {reading.sales.toLocaleString()}
                             </span>
-                            <span className="text-sm font-mono text-slate-600 dark:text-slate-300">
-                              {dieselLiters.toLocaleString()} L
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-                              gasoline
-                            </span>
-                            <span className="text-sm font-mono text-slate-600 dark:text-slate-300">
-                              {gasolineLiters.toLocaleString()} L
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <span className="font-mono font-bold text-slate-900 dark:text-white">
-                            {reading.sales.toLocaleString()}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -284,7 +333,14 @@ export default function DailySales() {
                       </thead>
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                         {pumps.map(pump => {
-                          const previousIndex = pumpReadings[pumpReadings.length - 1]?.pumps.find(p => p.pumpId === pump.id)?.index || 0;
+                          let previousIndex = 0;
+                          for (const reading of readings) {
+                            const pEntry = reading.pumps.find((p: any) => p.pumpId === pump.id);
+                            if (pEntry) {
+                              previousIndex = pEntry.index;
+                              break;
+                            }
+                          }
                           const currentIndex = indices[pump.id] || 0;
                           const totalLiters = Math.max(0, currentIndex - previousIndex);
                           
